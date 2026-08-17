@@ -1,0 +1,9 @@
+Safe to delete this file.
+
+The PWA manifest used to live here as a static file. It is now generated from
+your BRAND settings in src/lib/config.ts by src/app/manifest.ts, so renaming
+your product also renames the home-screen icon. It is still served at the same
+URL: /manifest.webmanifest
+
+(The sandbox this was built in could not delete files, only rename them — hence
+this note instead of a clean removal.)

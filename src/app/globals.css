@@ -1,0 +1,940 @@
+/* =====================================================================
+   ASCEND SYSTEM — design system
+   ---------------------------------------------------------------------
+   Direction: a diegetic HUD. The interface is meant to read as the
+   System *itself* talking to you, not a fitness dashboard about it.
+   Colour carries rank (grey -> cyan -> violet -> magenta -> gold -> white),
+   so the palette literally is the progression. The one signature element
+   is the notched "system window": a bevelled panel that boots in with a
+   sweep. Everything else stays quiet so that lands.
+   ===================================================================== */
+
+:root {
+  /* surfaces — near-black with a violet cast, never pure #000 */
+  --void: #08070f;
+  --void-2: #0e0c1a;
+  --void-3: #141122;
+  --panel: rgba(20, 17, 34, 0.72);
+  --panel-solid: #16132a;
+
+  /* lines + light */
+  --edge: rgba(124, 232, 255, 0.22);
+  --edge-soft: rgba(167, 139, 250, 0.16);
+  --glow: #7ce8ff;
+  --rune: #a78bfa;
+  --gold: #f2b33d;
+  --magenta: #e879f9;
+  --danger: #ff6b81;
+  --flat: #6b6880;
+
+  /* type */
+  --ink: #e9e7f5;
+  --ink-dim: #9c98b8;
+  --ink-faint: #6b6880;
+
+  /* rank ramp — heat rises with rank */
+  --rank-e: #6b6880;
+  --rank-d: #7ce8ff;
+  --rank-c: #a78bfa;
+  --rank-b: #e879f9;
+  --rank-a: #f2b33d;
+  --rank-s: #ffffff;
+
+  /* stat hues */
+  --stat-strength: #ff8f6b;
+  --stat-core: #7ce8ff;
+  --stat-stamina: #6ee7b7;
+  --stat-willpower: #a78bfa;
+
+  --font-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+
+  --maxw: 60rem;
+  --radius: 2px; /* almost none: this is a HUD, not a card UI */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background:
+    radial-gradient(1100px 620px at 50% -12%, rgba(124, 232, 255, 0.08), transparent 60%),
+    radial-gradient(760px 480px at 88% 4%, rgba(167, 139, 250, 0.07), transparent 62%),
+    var(--void);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* faint grid — the floor of the dungeon, kept almost subliminal */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(124, 232, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 232, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at 50% 22%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 22%, #000 0%, transparent 78%);
+}
+
+/* ------------------------------- type ------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+h1 {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  letter-spacing: -0.01em;
+}
+h2 {
+  font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+}
+h3 {
+  font-size: 1.1rem;
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--glow);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* the System's own voice: monospaced, uppercase, tracked out */
+.sys-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--glow);
+  opacity: 0.85;
+}
+
+.sys-dim {
+  color: var(--ink-dim);
+}
+.sys-faint {
+  color: var(--ink-faint);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.lead {
+  font-size: 1.06rem;
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+
+/* ------------------------------ layout ------------------------------ */
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.stack > * + * {
+  margin-top: 1rem;
+}
+.stack-lg > * + * {
+  margin-top: 2rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.row-between {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.grid-2 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.grid-3 {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.page-pad {
+  padding: 2.5rem 0 5rem;
+}
+
+/* ============ SIGNATURE ELEMENT: the notched system window ==========
+   A bevelled corner cut + a hairline cyan edge + a boot-in sweep.
+   Used for every panel in the app so the whole product feels like one
+   continuous interface being projected at you.
+   ================================================================== */
+
+.sysw {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(6px);
+  padding: 1.25rem;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  animation: sysw-boot 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* the sweep of light that reads as "window opening" */
+.sysw::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(124, 232, 255, 0.13) 48%, transparent 66%);
+  transform: translateX(-110%);
+  animation: sysw-sweep 900ms ease-out 120ms both;
+}
+
+.sysw-glow {
+  border-color: rgba(124, 232, 255, 0.42);
+  box-shadow: 0 0 0 1px rgba(124, 232, 255, 0.08), 0 12px 44px rgba(124, 232, 255, 0.09);
+}
+
+.sysw-quiet {
+  background: rgba(14, 12, 26, 0.55);
+  border-color: var(--edge-soft);
+}
+
+.sysw-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: -0.25rem 0 0.9rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--edge-soft);
+}
+
+@keyframes sysw-boot {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scaleY(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sysw-sweep {
+  to {
+    transform: translateX(110%);
+  }
+}
+
+/* ------------------------------ buttons ----------------------------- */
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--void);
+  background: var(--glow);
+  border: 1px solid var(--glow);
+  padding: 0.7rem 1.4rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: transform 120ms ease, filter 120ms ease, background 120ms ease;
+  text-decoration: none;
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--glow);
+  border-color: var(--edge);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(124, 232, 255, 0.08);
+}
+
+.btn-gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1204;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-sm {
+  font-size: 0.78rem;
+  padding: 0.5rem 0.9rem;
+}
+
+/* ------------------------------ inputs ------------------------------ */
+
+.field {
+  display: block;
+  margin-bottom: 0.9rem;
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 0.35rem;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--ink);
+  background: rgba(8, 7, 15, 0.75);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.8rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--glow);
+  box-shadow: 0 0 0 3px rgba(124, 232, 255, 0.14);
+}
+.input-lg {
+  font-size: 1.6rem;
+  text-align: center;
+  padding: 0.7rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  margin-top: 0.3rem;
+}
+
+/* ------------------------------- rank ------------------------------- */
+
+.rank-badge {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.6rem;
+  line-height: 1;
+  width: 4.2rem;
+  height: 4.2rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  flex: none;
+}
+
+.rank-E { color: var(--rank-e); }
+.rank-D { color: var(--rank-d); }
+.rank-C { color: var(--rank-c); }
+.rank-B { color: var(--rank-b); }
+.rank-A { color: var(--rank-a); }
+.rank-S { color: var(--rank-s); text-shadow: 0 0 18px rgba(255, 255, 255, 0.5); }
+
+/* ----------------------------- stat bars ---------------------------- */
+
+.statbar {
+  display: block;
+}
+
+.statbar-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.statbar-name {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.statbar-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.statbar-track {
+  position: relative;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.statbar-fill {
+  height: 100%;
+  background: var(--bar-color, var(--glow));
+  box-shadow: 0 0 12px var(--bar-color, var(--glow));
+  transition: width 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* the locked state — visible proof that effort alone won't move this */
+.statbar-locked .statbar-fill {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(0, 0, 0, 0.22) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.statbar-lock {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.statbar-delta {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  margin-left: 0.4rem;
+}
+.delta-up {
+  color: var(--stat-stamina);
+}
+.delta-down {
+  color: var(--danger);
+}
+.delta-flat {
+  color: var(--ink-faint);
+}
+
+/* -------------------------------- nav ------------------------------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(8, 7, 15, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--edge-soft);
+}
+
+.nav-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid transparent;
+}
+.nav-link:hover {
+  color: var(--ink);
+  text-decoration: none;
+  background: rgba(124, 232, 255, 0.06);
+}
+.nav-link[aria-current="page"] {
+  color: var(--glow);
+  border-color: var(--edge);
+}
+
+/* ------------------------------ brand ------------------------------- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand-glyph {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  border: 1.5px solid var(--glow);
+  clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 100%, 30% 100%, 0 70%);
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  color: var(--glow);
+}
+
+/* --------------------- reserved slot (your startup) ----------------- */
+
+.slot {
+  border: 1px dashed rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.04);
+  padding: 1.1rem 1.25rem;
+}
+
+.slot-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--rune);
+}
+
+/* ------------------------------ notices ----------------------------- */
+
+.notice {
+  border-left: 2px solid var(--glow);
+  background: rgba(124, 232, 255, 0.06);
+  padding: 0.8rem 1rem;
+  font-size: 0.92rem;
+}
+.notice-warn {
+  border-left-color: var(--gold);
+  background: rgba(242, 179, 61, 0.07);
+}
+.notice-bad {
+  border-left-color: var(--danger);
+  background: rgba(255, 107, 129, 0.07);
+}
+
+/* ------------------------------ quest ------------------------------- */
+
+.quest-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--edge-soft);
+}
+.quest-item:last-child {
+  border-bottom: none;
+}
+
+.quest-move {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  letter-spacing: 0.01em;
+}
+
+.quest-target {
+  font-family: var(--font-mono);
+  font-size: 1.02rem;
+  color: var(--glow);
+  white-space: nowrap;
+}
+
+.quest-hard {
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(242, 179, 61, 0.4);
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.5rem;
+  vertical-align: 2px;
+}
+
+/* ------------------------------ streak ------------------------------ */
+
+.streak-dots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.streak-dot {
+  width: 12px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.streak-dot.on {
+  background: var(--glow);
+  box-shadow: 0 0 8px rgba(124, 232, 255, 0.5);
+  border-color: var(--glow);
+}
+.streak-dot.rest {
+  background: var(--rune);
+  border-color: var(--rune);
+  opacity: 0.75;
+}
+
+/* ------------------------------ mentors ----------------------------- */
+
+.mentor-card {
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+
+.mentor-card[aria-pressed="true"] {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(242, 179, 61, 0.25);
+}
+
+.mentor-glyph {
+  font-size: 1.5rem;
+  color: var(--rune);
+}
+
+.mentor-quote {
+  border-left: 2px solid var(--edge-soft);
+  padding-left: 0.8rem;
+  font-style: italic;
+  color: var(--ink-dim);
+  font-size: 0.92rem;
+}
+
+/* mentor detail header: glyph · name · focus tag */
+.mentor-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+.mentor-head .mentor-glyph {
+  font-size: 2.1rem;
+  flex: none;
+}
+
+.focus-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tag-color, var(--rune));
+  border: 1px solid currentColor;
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+}
+
+.quote {
+  margin: 1.1rem 0 0;
+  border-left: 2px solid var(--gold);
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  font-style: italic;
+  color: var(--ink);
+}
+.quote cite {
+  display: block;
+  margin-top: 0.4rem;
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------ support ----------------------------- */
+
+/* One tier = one tappable row. Also used in a disabled form on the
+   "UPI not configured yet" state, so it must look fine without :hover. */
+.tier {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--edge-soft);
+  background: rgba(8, 7, 15, 0.4);
+  padding: 0.9rem 1.05rem;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+a.tier:hover {
+  border-color: var(--gold);
+  background: rgba(242, 179, 61, 0.06);
+  transform: translateX(2px);
+}
+.tier-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.tier-perk {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  margin-top: 0.15rem;
+}
+.tier-amount {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.tier-disabled {
+  cursor: not-allowed;
+}
+
+.qr {
+  display: block;
+  width: 12rem;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--edge);
+  background: #fff;
+  padding: 0.4rem;
+}
+
+/* inline code + config snippet, used on the "not configured yet" slots */
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  color: var(--glow);
+  background: rgba(124, 232, 255, 0.08);
+  padding: 0.1rem 0.3rem;
+}
+
+.pre {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: rgba(8, 7, 15, 0.72);
+  border: 1px solid var(--edge-soft);
+  padding: 0.85rem 1rem;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ------------------------------- table ------------------------------ */
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+}
+.tbl th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--edge-soft);
+}
+.tbl td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--ink-dim);
+}
+.tbl tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ------------------------------- misc ------------------------------- */
+
+.big-num {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.divider {
+  height: 1px;
+  background: var(--edge-soft);
+  border: none;
+  margin: 1.5rem 0;
+}
+
+.center {
+  text-align: center;
+}
+
+.footer {
+  border-top: 1px solid var(--edge-soft);
+  margin-top: 4rem;
+  padding: 2rem 0 3rem;
+  color: var(--ink-faint);
+  font-size: 0.84rem;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(124, 232, 255, 0.25);
+  border-top-color: var(--glow);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* typed reveal for the System's opening line */
+.typed {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--glow);
+  animation: typing 1.5s steps(38, end) both, caret 800ms step-end infinite;
+  max-width: 100%;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes caret {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.rankup {
+  animation: rankup-pulse 1.6s ease-out both;
+}
+
+@keyframes rankup-pulse {
+  0% {
+    filter: brightness(2.4);
+    letter-spacing: 0.3em;
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    filter: none;
+    letter-spacing: normal;
+    opacity: 1;
+  }
+}
+
+/* ---------------------------- a11y floor ---------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .typed {
+    white-space: normal;
+    border-right: none;
+  }
+}
+
+@media (max-width: 34rem) {
+  .rank-badge {
+    font-size: 2rem;
+    width: 3.4rem;
+    height: 3.4rem;
+  }
+  .sysw {
+    padding: 1rem;
+  }
+  .big-num {
+    font-size: 1.9rem;
+  }
+}

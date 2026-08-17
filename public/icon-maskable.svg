@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#08070F"/>
+  <!-- maskable: keep art inside the safe circle (center 80%) -->
+  <rect x="168" y="300" width="30" height="44" fill="#6B6880"/>
+  <rect x="216" y="268" width="30" height="76" fill="#7CE8FF"/>
+  <rect x="264" y="230" width="30" height="114" fill="#A78BFA"/>
+  <rect x="312" y="192" width="30" height="152" fill="#F2B33D"/>
+  <path d="M150 168 h176 l40 40" fill="none" stroke="#7CE8FF" stroke-width="12" opacity="0.75"/>
+</svg>

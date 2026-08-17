@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#08070F"/>
+  <!-- notched system frame -->
+  <path d="M96 128 h256 l64 64 v192 h-320 z" fill="none" stroke="#7CE8FF" stroke-width="14" stroke-linejoin="miter" opacity="0.9"/>
+  <!-- ascending bars: the only thing that rises is measured progress -->
+  <rect x="150" y="300" width="34" height="52" fill="#6B6880"/>
+  <rect x="204" y="262" width="34" height="90" fill="#7CE8FF"/>
+  <rect x="258" y="216" width="34" height="136" fill="#A78BFA"/>
+  <rect x="312" y="176" width="34" height="176" fill="#F2B33D"/>
+</svg>
